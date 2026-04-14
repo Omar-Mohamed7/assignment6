@@ -38,7 +38,7 @@ jobs:
       ${{
         needs.linter.result == 'success' &&
         github.ref == 'refs/heads/main' &&
-        contains(github.event.head_commit.message, '[run-train]')
+        contains(github.event.head_commit.message || '', '[run-train]')
       }}
     runs-on: ubuntu-latest
 
@@ -46,12 +46,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Training
         run: |
-            set -o pipefail
-            echo "Starting training…"
-            echo "Simulating failure..."
-            exit 1
+          set -o pipefail
+          echo "Starting training…"
+          python -u train.py 2>&1 | tee train_output.log
 
       - name: Write error log (only on failure)
         if: failure()
