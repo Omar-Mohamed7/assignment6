@@ -48,9 +48,10 @@ jobs:
 
       - name: Training
         run: |
-          set -o pipefail
-          echo "Starting training…"
-          echo "(placeholder) training command would run here" 2>&1 | tee train_output.log
+            set -o pipefail
+            echo "Starting training…"
+            echo "Simulating failure..."
+            exit 1
 
       - name: Write error log (only on failure)
         if: failure()
