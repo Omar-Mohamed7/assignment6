@@ -38,7 +38,7 @@ jobs:
       ${{
         needs.linter.result == 'success' &&
         github.ref == 'refs/heads/main' &&
-        contains(github.event.head_commit.message || '', '[run-train]')
+        contains(github.event.head_commit.message, '[run-train]')
       }}
     runs-on: ubuntu-latest
 
@@ -50,9 +50,6 @@ jobs:
         run: |
           set -o pipefail
           echo "Starting training…"
-          # Replace this with your real training command, e.g.:
-          # python train.py
-          # For now, we capture output so it can be uploaded on failure.
           echo "(placeholder) training command would run here" 2>&1 | tee train_output.log
 
       - name: Write error log (only on failure)
@@ -68,7 +65,7 @@ jobs:
             if [ -f train_output.log ]; then
               tail -n 200 train_output.log
             else
-              echo "train_output.log not found (failure happened before log capture)."
+              echo "train_output.log not found."
             fi
           } > error_logs.txt
 
@@ -84,3 +81,4 @@ jobs:
         if: always()
         run: |
           echo "Cleaning up temporary cloud volumes..."
+          
