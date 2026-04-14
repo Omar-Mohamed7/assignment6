@@ -48,9 +48,12 @@ jobs:
 
       - name: Training
         run: |
+          set -o pipefail
           echo "Starting training…"
           # Replace this with your real training command, e.g.:
           # python train.py
+          # For now, we capture output so it can be uploaded on failure.
+          echo "(placeholder) training command would run here" 2>&1 | tee train_output.log
 
       - name: Write error log (only on failure)
         if: failure()
@@ -60,6 +63,13 @@ jobs:
             echo "Repo: ${{ github.repository }}"
             echo "Run:  ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             echo "SHA:  ${{ github.sha }}"
+            echo ""
+            echo "--- Last 200 lines of train_output.log (if present) ---"
+            if [ -f train_output.log ]; then
+              tail -n 200 train_output.log
+            else
+              echo "train_output.log not found (failure happened before log capture)."
+            fi
           } > error_logs.txt
 
       - name: Upload error log artifact (only on failure)
