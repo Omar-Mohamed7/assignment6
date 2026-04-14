@@ -1,0 +1,76 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - "**"
+
+permissions:
+  contents: read
+
+jobs:
+  linter:
+    name: Linter (gatekeeper)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install linter
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Run linter
+        run: |
+          ruff check .
+
+  train:
+    name: Train (GPU / expensive)
+    needs: linter
+    if: >-
+      ${{
+        needs.linter.result == 'success' &&
+        github.ref == 'refs/heads/main' &&
+        contains(github.event.head_commit.message || '', '[run-train]')
+      }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Training
+        run: |
+          echo "Starting training…"
+          # Replace this with your real training command, e.g.:
+          # python train.py
+
+      - name: Write error log (only on failure)
+        if: failure()
+        run: |
+          {
+            echo "Training job failed."
+            echo "Repo: ${{ github.repository }}"
+            echo "Run:  ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "SHA:  ${{ github.sha }}"
+          } > error_logs.txt
+
+      - name: Upload error log artifact (only on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: training-error-logs
+          path: error_logs.txt
+          if-no-files-found: error
+
+      - name: Cleanup (always)
+        if: always()
+        run: |
+          echo "Cleaning up temporary cloud volumes..."
