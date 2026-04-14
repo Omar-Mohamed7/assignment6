@@ -56,27 +56,14 @@ jobs:
       - name: Write error log (only on failure)
         if: failure()
         run: |
-          {
-            echo "Training job failed."
-            echo "Repo: ${{ github.repository }}"
-            echo "Run:  ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            echo "SHA:  ${{ github.sha }}"
-            echo ""
-            echo "--- Last 200 lines of train_output.log (if present) ---"
-            if [ -f train_output.log ]; then
-              tail -n 200 train_output.log
-            else
-              echo "train_output.log not found."
-            fi
-          } > error_logs.txt
+            echo "Training failed" > error_logs.txt
 
       - name: Upload error log artifact (only on failure)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: training-error-logs
-          path: error_logs.txt
-          if-no-files-found: error
+            name: training-error-logs
+            path: error_logs.txt
 
       - name: Cleanup (always)
         if: always()
